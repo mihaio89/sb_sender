@@ -18,7 +18,7 @@ private static readonly string QueueName = Config.QueueName;
             string sessionId = "42";
 
             // Send a message to the Service Bus queue with a SessionId
-            string filePath = @"messages\nce.json";
+            string filePath = @"messages\consumer1.json";
             if (!File.Exists(filePath))
             {
                 Console.WriteLine($"File not found: {filePath}");
@@ -29,8 +29,7 @@ private static readonly string QueueName = Config.QueueName;
 
             // Send the message to the Service Bus queue
             await SendMessageAsync(messageContent, sessionId);
-
-            Console.WriteLine($"Message sent successfully, sessionId: {sessionId}");
+            Console.WriteLine($"{DateTime.Now}: message with sessionId {sessionId} sent successfully");
         }
         catch (Exception ex)    
         {
