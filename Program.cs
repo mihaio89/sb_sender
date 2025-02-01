@@ -6,7 +6,7 @@ namespace ServiceBus_Queue_Sender;
 
 class Program
 {
-    // Connection string to the Service Bus namespace
+private const string message = "nce.json";
 private static readonly string ServiceBusConnectionString = Config.ServiceBusConnectionString;
 private static readonly string QueueName = Config.QueueName;
 
@@ -14,11 +14,10 @@ private static readonly string QueueName = Config.QueueName;
     {
         try
         {
-            // Example SessionId (can be dynamic)
             string sessionId = "42";
 
-            // Send a message to the Service Bus queue with a SessionId
-            string filePath = @"messages\consumer1.json";
+            string filePath = $@"messages\{message}";
+
             if (!File.Exists(filePath))
             {
                 Console.WriteLine($"File not found: {filePath}");
@@ -29,7 +28,7 @@ private static readonly string QueueName = Config.QueueName;
 
             // Send the message to the Service Bus queue
             await SendMessageAsync(messageContent, sessionId);
-            Console.WriteLine($"{DateTime.Now}: message with sessionId {sessionId} sent successfully");
+            Console.WriteLine($"{DateTime.Now}: message {message} sent successfully to queue {QueueName}");
         }
         catch (Exception ex)    
         {
