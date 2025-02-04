@@ -1,67 +1,65 @@
 ﻿using System;
+using System.IO;
 using System.Threading.Tasks;
 using Azure.Messaging.ServiceBus;
 
-namespace ServiceBus_Queue_Sender;
-
-class Program
+namespace ServiceBus_Queue_Sender
 {
-private const string message = "nce.json";
-private static readonly string ServiceBusConnectionString = Config.ServiceBusConnectionString;
-private static readonly string QueueName = Config.QueueName;
-
-    static async Task Main(string[] args)
+    class Program
     {
-        try
+        private const string sessionId = "42";
+        private static readonly string ServiceBusConnectionString = Config.ServiceBusConnectionString;
+        private static readonly string QueueName = Config.QueueName;
+
+        static async Task Main(string[] args)
         {
-            string sessionId = "42";
-
-            string filePath = $@"messages\{message}";
-
-            if (!File.Exists(filePath))
+            try
             {
-                Console.WriteLine($"File not found: {filePath}");
-                return;
+                if (args.Length == 0)
+                {
+                    Console.WriteLine("Usage: ServiceBus_Queue_Sender <messageFileName> [queueName]");
+                    return;
+                }
+
+                string messageFileName = args[0];
+                string queueName = args.Length > 1 ? args[1] : QueueName;
+                
+                Console.WriteLine($"using Queue: {queueName}");
+
+                string filePath = $@"messages\{messageFileName}";
+                if (!File.Exists(filePath))
+                {
+                    Console.WriteLine($"File not found: {filePath}");
+                    return;
+                }
+
+                string messageContent = await File.ReadAllTextAsync(filePath);
+                await SendMessageAsync(queueName, messageContent, sessionId);
+                Console.WriteLine($"{DateTime.Now}: Message {messageFileName} sent successfully to Queue {queueName}");
             }
-
-            string messageContent = await File.ReadAllTextAsync(filePath);
-
-            // Send the message to the Service Bus queue
-            await SendMessageAsync(messageContent, sessionId);
-            Console.WriteLine($"{DateTime.Now}: message {message} sent successfully to queue {QueueName}");
-        }
-        catch (Exception ex)    
-        {
-            // If an error occurs, log it and indicate failure
-            Console.WriteLine($"Error sending message: {ex.Message}");
-        }
-    }
-
-    private static async Task SendMessageAsync(string messageContent, string sessionId)
-    {
-        // Create a ServiceBusClient to connect to the namespace
-        await using var client = new ServiceBusClient(ServiceBusConnectionString);
-
-        // Create a sender for the queue
-        ServiceBusSender sender = client.CreateSender(QueueName);
-
-        try
-        {
-            // Create a message and set the SessionId
-            ServiceBusMessage message = new ServiceBusMessage(messageContent)
+            catch (Exception ex)
             {
-                SessionId = sessionId
-            };
-
-            // Send the message to the queue
-            await sender.SendMessageAsync(message);
-            //Console.WriteLine($"Message sent: {messageContent} with SessionId: {sessionId}");
-           // Console.WriteLine($"Message with SessionId: {sessionId}");
+                Console.WriteLine($"Error sending message: {ex.Message}");
+            }
         }
-        finally
+
+        private static async Task SendMessageAsync(string queueName, string messageContent, string sessionId)
         {
-            // Dispose the sender
-            await sender.DisposeAsync();
+            await using var client = new ServiceBusClient(ServiceBusConnectionString);
+            ServiceBusSender sender = client.CreateSender(queueName);
+            
+            try
+            {
+                ServiceBusMessage message = new ServiceBusMessage(messageContent)
+                {
+                    SessionId = sessionId
+                };
+                await sender.SendMessageAsync(message);
+            }
+            finally
+            {
+                await sender.DisposeAsync();
+            }
         }
     }
 }
