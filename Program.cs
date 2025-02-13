@@ -24,7 +24,7 @@ namespace ServiceBus_Queue_Sender
                 string messageFileName = args[0];
                 string queueName = args.Length > 1 ? args[1] : QueueName;
                 
-                Console.WriteLine($"using Queue: {queueName}");
+                Console.WriteLine($"Queue: {queueName}");
 
                 string filePath = $@"messages\{messageFileName}";
                 if (!File.Exists(filePath))
@@ -35,7 +35,7 @@ namespace ServiceBus_Queue_Sender
 
                 string messageContent = await File.ReadAllTextAsync(filePath);
                 await SendMessageAsync(queueName, messageContent, sessionId);
-                Console.WriteLine($"{DateTime.Now}: Message {messageFileName} sent successfully to Queue {queueName}");
+                Console.WriteLine($"{DateTime.Now}: {messageFileName} sent successfully");
             }
             catch (Exception ex)
             {
